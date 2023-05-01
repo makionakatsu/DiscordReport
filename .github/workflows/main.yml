@@ -1,15 +1,14 @@
 name: Discord Log Fetcher
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 8 * * *'  # Run daily at 17:00 JST (UTC+9)
+    - cron: '0 9 * * *'
 
 jobs:
-  fetch_discord_logs:
+  fetch_discord_log:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
+    - name: Check out repository
       uses: actions/checkout@v2
 
     - name: Set up Python
@@ -19,16 +18,19 @@ jobs:
 
     - name: Install dependencies
       run: |
-        echo "Installing dependencies..."
         python -m pip install --upgrade pip
-        pip install --default-timeout=120 -r requirements.txt
-
+        pip install -r requirements.txt
 
     - name: Fetch Discord Log
-      run: |
-        echo "Fetching Discord Log..."
-        python main.py
       env:
         DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         GUILD_ID: ${{ secrets.GUILD_ID }}
+      run: |
+        python main.py
+
+    - name: Archive log file
+      uses: actions/upload-artifact@v2
+      with:
+        name: discord-log
+        path: discord_log_*.txt
 
