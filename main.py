@@ -44,3 +44,4 @@ async def on_ready():
     await bot.logout()  # ログ取得が完了したらBotをログアウトさせます
 
 bot.run(TOKEN)
+
