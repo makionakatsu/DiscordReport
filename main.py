@@ -39,6 +39,7 @@ async def fetch_logs(guild, target_date):
     return found_messages
 
 
+
 TOKEN = os.environ["DISCORD_TOKEN"]
 GUILD_ID = int(os.environ["GUILD_ID"])
 DATE = get_target_date()
