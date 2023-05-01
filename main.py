@@ -14,17 +14,15 @@ async def fetch_logs(guild, target_date, member=None):
     for channel in guild.text_channels:
         if not member:
             channel_has_messages = False
-            for msg in channel.history(limit=10000):
-                if msg.created_at.date() == target_date:
-                    channel_has_messages = True
-                    found_messages.append(msg)
-                    break
+            async for msg in channel.history(limit=10000).filter(lambda msg: msg.created_at.date() == target_date):
+                channel_has_messages = True
+                found_messages.append(msg)
+                break
         else:
             try:
-                for msg in channel.history(limit=10000, user=member):
-                    if msg.created_at.date() == target_date:
-                        found_messages.append(msg)
-                        break
+                async for msg in channel.history(limit=10000, user=member).filter(lambda msg: msg.created_at.date() == target_date):
+                    found_messages.append(msg)
+                    break
             except discord.errors.Forbidden:
                 print(f"Skipping channel {channel.name} due to insufficient permissions.")
                 continue
@@ -33,8 +31,6 @@ async def fetch_logs(guild, target_date, member=None):
         print(f"No messages found for date {target_date}.")
 
     return found_messages
-
-
 
 TOKEN = os.environ["DISCORD_TOKEN"]
 GUILD_ID = int(os.environ["GUILD_ID"])
@@ -61,7 +57,6 @@ async def on_ready():
         for msg in found_messages:
             print(f"{msg.author}: {msg.content}")
 
-    await bot.logout()
+    await bot.close()
 
 bot.run(TOKEN)
-
