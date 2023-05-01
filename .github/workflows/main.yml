@@ -24,7 +24,7 @@ jobs:
         env:
           DISCORD_TOKEN: ${{ secrets.TOKEN }}
           GUILD_ID: ${{ secrets.GUILD_ID }}
-        run: python fetch_discord_logs.py
+        run: python main.py
 
       - name: Upload logs
         uses: actions/upload-artifact@v2
