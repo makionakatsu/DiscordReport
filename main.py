@@ -5,7 +5,7 @@ from discord.ext import commands
 import datetime
 import pytz
 
-TOKEN = os.environ["TOKEN"]  # 環境変数からTOKENを取得
+DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]  # 環境変数からTOKENを取得
 GUILD_ID = int(os.environ["GUILD_ID"])  # 環境変数からGUILD_IDを取得し、整数に変換
 
 japan_timezone = pytz.timezone("Asia/Tokyo")
@@ -46,4 +46,4 @@ async def on_ready():
     print("Log file created.")
     await bot.logout()
 
-bot.run(TOKEN)
+bot.run(DISCORD_TOKEN)
