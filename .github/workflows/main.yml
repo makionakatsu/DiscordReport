@@ -3,6 +3,7 @@ name: Discord Log Fetcher
 on:
   schedule:
     - cron: '0 9 * * *'
+  workflow_dispatch:
 
 jobs:
   fetch_discord_log:
