@@ -12,23 +12,32 @@ def get_target_date():
 
 async def fetch_logs(guild, target_date):
     log_file = open(f"discord_log_{target_date}.txt", "w", encoding="utf-8")
+    found_messages = False
 
     for channel in guild.text_channels:
+        channel_has_messages = False
         try:
-            print(f"Processing channel: {channel.name}")
             async for msg in channel.history(limit=10000):
                 if msg.created_at.date() == target_date:
                     log_file.write(f"[{channel.name}] {msg.author}: {msg.content}\n")
+                    found_messages = True
+                    channel_has_messages = True
 
                     for attachment in msg.attachments:
                         log_file.write(f"Attachment: {attachment.url}\n")
-            print(f"Finished processing channel: {channel.name}")
         except discord.errors.Forbidden:
             print(f"Skipping channel {channel.name} due to insufficient permissions.")
             continue
 
+        if not channel_has_messages:
+            print(f"No messages found in channel {channel.name} for date {target_date}.")
+
+    if not found_messages:
+        print(f"No messages found in any channel for date {target_date}.")
+
     log_file.close()
-    print("Log file created.")
+    return found_messages
+
 
 TOKEN = os.environ["DISCORD_TOKEN"]
 GUILD_ID = int(os.environ["GUILD_ID"])
