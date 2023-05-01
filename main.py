@@ -1,10 +1,13 @@
+import os  # 追加: osモジュールをインポート
+
 import discord
 from discord.ext import commands
 import datetime
 import pytz
 
-TOKEN = "your_discord_token"
-GUILD_ID = 123456789
+TOKEN = os.environ["TOKEN"]  # 環境変数からTOKENを取得
+GUILD_ID = int(os.environ["GUILD_ID"])  # 環境変数からGUILD_IDを取得し、整数に変換
+
 japan_timezone = pytz.timezone("Asia/Tokyo")
 now = datetime.datetime.now(japan_timezone)
 yesterday = now - datetime.timedelta(days=1)
@@ -41,7 +44,6 @@ async def on_ready():
 
     log_file.close()
     print("Log file created.")
-    await bot.logout()  # ログ取得が完了したらBotをログアウトさせます
+    await bot.logout()
 
 bot.run(TOKEN)
-
