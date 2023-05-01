@@ -1,16 +1,14 @@
 import discord
-import os
+from discord.ext import commands
 import datetime
 import pytz
-from discord.ext import commands
 
-TOKEN = os.environ["DISCORD_TOKEN"]
-GUILD_ID = int(os.environ["GUILD_ID"])
-
+TOKEN = "your_discord_token"
+GUILD_ID = 123456789
 japan_timezone = pytz.timezone("Asia/Tokyo")
 now = datetime.datetime.now(japan_timezone)
-twenty_four_hours_ago = now - datetime.timedelta(hours=24)
-DATE = twenty_four_hours_ago.strftime("%Y-%m-%d")
+yesterday = now - datetime.timedelta(days=1)
+DATE = yesterday.strftime("%Y-%m-%d")
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -43,6 +41,6 @@ async def on_ready():
 
     log_file.close()
     print("Log file created.")
-    await bot.close()
+    await bot.logout()  # ログ取得が完了したらBotをログアウトさせます
 
 bot.run(TOKEN)
