@@ -10,18 +10,24 @@ def get_target_date():
     yesterday = now - datetime.timedelta(days=1)
     return yesterday.strftime("%Y-%m-%d")
 
-async def fetch_logs(guild, target_date):
-    log_file = open(f"discord_log_{target_date}.txt", "w", encoding="utf-8")
-    found_messages = False
+@bot.event
+async def on_ready():
+    print(f"We have logged in as {bot.user}")
+
+    guild = discord.utils.get(bot.guilds, id=GUILD_ID)
+    target_date = datetime.datetime.strptime(DATE, "%Y-%m-%d").date()
+
+    if not guild:
+        print("Error: Guild not found.")
+        return
+
+    log_file = open(f"discord_log_{DATE}.txt", "w", encoding="utf-8")
 
     for channel in guild.text_channels:
-        channel_has_messages = False
         try:
             async for msg in channel.history(limit=10000):
                 if msg.created_at.date() == target_date:
                     log_file.write(f"[{channel.name}] {msg.author}: {msg.content}\n")
-                    found_messages = True
-                    channel_has_messages = True
 
                     for attachment in msg.attachments:
                         log_file.write(f"Attachment: {attachment.url}\n")
@@ -29,7 +35,12 @@ async def fetch_logs(guild, target_date):
             print(f"Skipping channel {channel.name} due to insufficient permissions.")
             continue
 
-        if not channel_has_messages:
+    log_file.close()
+    print("Log file created.")
+    await bot.close()
+
+
+    if not channel_has_messages:
             print(f"No messages found in channel {channel.name} for date {target_date}.")
 
     if not found_messages:
