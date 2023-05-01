@@ -10,6 +10,15 @@ def get_target_date(timezone):
     yesterday = now - datetime.timedelta(days=1)
     return yesterday.strftime("%Y-%m-%d")
 
+
+def write_log_to_file(found_messages, target_date):
+    file_name = f"discord_log_{target_date}.txt"
+    with open(file_name, "w", encoding="utf-8") as file:
+        for msg in found_messages:
+            file.write(f"{msg.created_at} {msg.author}: {msg.content}\n")
+    return file_name
+
+
 async def fetch_logs(guild, target_date, member=None):
     found_messages = []
     for channel in guild.text_channels:
@@ -60,6 +69,9 @@ async def on_ready():
     if found_messages:
         for msg in found_messages:
             print(f"{msg.author}: {msg.content}")
+        log_file_name = write_log_to_file(found_messages, target_date)
+    else:
+        print(f"No messages found for date {target_date}.")
 
     await bot.close()
 
