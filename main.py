@@ -1,8 +1,9 @@
 import os
-import discord
-from discord.ext import commands
+import nextcord as discord
+from nextcord.ext import commands
 import datetime
 import pytz
+
 
 def get_target_date(timezone):
     now = datetime.datetime.now(timezone)
