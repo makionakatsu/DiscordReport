@@ -25,6 +25,6 @@ jobs:
 
     - name: Fetch logs and send via webhook
       env:
-        DISCORD_TOKEN: ${{ secrets.TOKEN }}
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         GUILD_ID: ${{ secrets.GUILD_ID }}
       run: python main.py
