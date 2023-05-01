@@ -1,3 +1,8 @@
+name: Discord Log Fetcher
+
+on:
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,5 +23,5 @@ jobs:
     - name: Run script
       run: python main.py
       env:
-        DISCORD_TOKEN: ${{ secrets.TOKEN }}  # 環境変数にDISCORD_TOKENを設定
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}  # 環境変数にDISCORD_TOKENを設定
         GUILD_ID: ${{ secrets.GUILD_ID }}  # 環境変数にGUILD_IDを設定
