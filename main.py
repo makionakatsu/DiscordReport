@@ -4,56 +4,41 @@ from discord.ext import commands
 import datetime
 import pytz
 
-def get_target_date():
-    japan_timezone = pytz.timezone("Asia/Tokyo")
-    now = datetime.datetime.now(japan_timezone)
+def get_target_date(timezone):
+    now = datetime.datetime.now(timezone)
     yesterday = now - datetime.timedelta(days=1)
     return yesterday.strftime("%Y-%m-%d")
 
-@bot.event
-async def on_ready():
-    print(f"We have logged in as {bot.user}")
-
-    guild = discord.utils.get(bot.guilds, id=GUILD_ID)
-    target_date = datetime.datetime.strptime(DATE, "%Y-%m-%d").date()
-
-    if not guild:
-        print("Error: Guild not found.")
-        return
-
-    log_file = open(f"discord_log_{DATE}.txt", "w", encoding="utf-8")
-
+async def fetch_logs(guild, target_date, member=None):
+    found_messages = []
     for channel in guild.text_channels:
-        try:
-            async for msg in channel.history(limit=10000):
+        if not member:
+            channel_has_messages = False
+            for msg in channel.history(limit=10000):
                 if msg.created_at.date() == target_date:
-                    log_file.write(f"[{channel.name}] {msg.author}: {msg.content}\n")
-
-                    for attachment in msg.attachments:
-                        log_file.write(f"Attachment: {attachment.url}\n")
-        except discord.errors.Forbidden:
-            print(f"Skipping channel {channel.name} due to insufficient permissions.")
-            continue
-
-    log_file.close()
-    print("Log file created.")
-    await bot.close()
-
-
-    if not channel_has_messages:
-            print(f"No messages found in channel {channel.name} for date {target_date}.")
+                    channel_has_messages = True
+                    found_messages.append(msg)
+                    break
+        else:
+            try:
+                for msg in channel.history(limit=10000, user=member):
+                    if msg.created_at.date() == target_date:
+                        found_messages.append(msg)
+                        break
+            except discord.errors.Forbidden:
+                print(f"Skipping channel {channel.name} due to insufficient permissions.")
+                continue
 
     if not found_messages:
-        print(f"No messages found in any channel for date {target_date}.")
+        print(f"No messages found for date {target_date}.")
 
-    log_file.close()
     return found_messages
 
 
 
 TOKEN = os.environ["DISCORD_TOKEN"]
 GUILD_ID = int(os.environ["GUILD_ID"])
-DATE = get_target_date()
+DATE = get_target_date(pytz.timezone("Asia/Tokyo"))
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -70,7 +55,13 @@ async def on_ready():
         print("Error: Guild not found.")
         return
 
-    await fetch_logs(guild, target_date)
+    found_messages = await fetch_logs(guild, target_date)
+
+    if found_messages:
+        for msg in found_messages:
+            print(f"{msg.author}: {msg.content}")
+
     await bot.logout()
 
 bot.run(TOKEN)
+
