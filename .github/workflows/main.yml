@@ -21,7 +21,8 @@ jobs:
       run: |
         echo "Installing dependencies..."
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install --default-timeout=120 -r requirements.txt
+
 
     - name: Fetch Discord Log
       run: |
