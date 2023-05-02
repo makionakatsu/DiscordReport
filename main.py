@@ -15,8 +15,9 @@ def write_log_to_file(found_messages, target_date):
     file_name = f"discord_log_{target_date}.txt"
     with open(file_name, "w", encoding="utf-8") as file:
         for msg in found_messages:
-            file.write(f"{msg.created_at} {msg.author}: {msg.content}\n")
+            file.write(f"{msg.created_at} {msg.channel.name} {msg.author}: {msg.content}\n")
     return file_name
+
 
 
 def convert_to_jst(dt):
