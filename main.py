@@ -159,6 +159,6 @@ async def on_ready():
     else:
         print(f"No messages found for date {target_date}.")
 
-    await bot.close()
+    await bot.logout()
 
 bot.run(TOKEN)
