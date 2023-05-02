@@ -75,9 +75,10 @@ async def on_ready():
     if found_messages:
         for msg in found_messages:
             jst_created_at = convert_to_jst(msg.created_at)
+            formatted_timestamp = jst_created_at.strftime("%Y-%m-%d %H:%M:%S")
             attachments = [attachment.url for attachment in msg.attachments]
             attachment_urls = "\n".join(attachments)
-            print(f"{jst_created_at} {msg.channel} {msg.author}: {msg.content}\n{attachment_urls}")
+            print(f"{formatted_timestamp} {msg.channel} {msg.author}: {msg.content}\n{attachment_urls}")
         log_file_name = write_log_to_file(found_messages, target_date)
     else:
         print(f"No messages found for date {target_date}.")
