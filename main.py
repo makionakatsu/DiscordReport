@@ -74,9 +74,10 @@ async def on_ready():
             attachments = [attachment.url for attachment in msg.attachments]
             attachment_urls = "\n".join(attachments)
             print(f"Channel: {msg.channel.name} | {msg.author}: {msg.content}\n{attachment_urls}")
-        log_file_name = write_log_to_file(found_messages, target_date)
-    else:
-        print(f"No messages found for date {target_date}.")
+            log_file_name = write_log_to_file(found_messages, target_date)
+        else:
+            print(f"No messages found for date {target_date}.")
+
 
 
     await bot.close()
