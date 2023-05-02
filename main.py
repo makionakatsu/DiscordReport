@@ -3,6 +3,7 @@ import nextcord as discord
 from nextcord.ext import commands
 import datetime
 import pytz
+import csv
 
 
 def get_target_date(timezone):
@@ -11,16 +12,18 @@ def get_target_date(timezone):
     return yesterday.strftime("%Y-%m-%d")
 
 
-def write_log_to_file(found_messages, target_date):
-    file_name = f"discord_log_{target_date}.txt"
-    with open(file_name, "w", encoding="utf-8") as file:
+def write_log_to_csv(found_messages, target_date):
+    file_name = f"discord_log_{target_date}.csv"
+    with open(file_name, "w", encoding="utf-8", newline="") as file:
+        csv_writer = csv.writer(file)
+        csv_writer.writerow(["Timestamp", "Channel", "Author", "Content"])
+
         for msg in found_messages:
             jst_created_at = convert_to_jst(msg.created_at)
             formatted_timestamp = jst_created_at.strftime("%Y-%m-%d %H:%M:%S")
-            file.write(f"{formatted_timestamp} {msg.channel.name} {msg.author}: {msg.content}\n")
+            csv_writer.writerow([formatted_timestamp, msg.channel.name, str(msg.author), msg.content])
+
     return file_name
-
-
 
 
 def convert_to_jst(dt):
@@ -55,9 +58,19 @@ async def fetch_logs(guild, target_date, member=None):
     return found_messages
 
 
+async def send_log_to_channel(guild, log_file_name, channel_id):
+    channel = guild.get_channel(channel_id)
+    if channel is None:
+        print(f"Error: Channel with ID {channel_id} not found.")
+        return
+
+    with open(log_file_name, "rb") as file:
+        await channel.send(file=discord.File(file, filename=log_file_name))
+
 TOKEN = os.environ["DISCORD_TOKEN"]
 GUILD_ID = int(os.environ["GUILD_ID"])
 DATE = get_target_date(pytz.timezone("Asia/Tokyo"))
+CHANNEL_ID = int(os.environ["CHANNEL_ID"])
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -77,13 +90,8 @@ async def on_ready():
     found_messages = await fetch_logs(guild, target_date)
 
     if found_messages:
-        for msg in found_messages:
-            jst_created_at = convert_to_jst(msg.created_at)
-            formatted_timestamp = jst_created_at.strftime("%Y-%m-%d %H:%M:%S")
-            attachments = [attachment.url for attachment in msg.attachments]
-            attachment_urls = "\n".join(attachments)
-            print(f"{formatted_timestamp} {msg.channel} {msg.author}: {msg.content}\n{attachment_urls}")
-        log_file_name = write_log_to_file(found_messages, target_date)
+        log_file_name = write_log_to_csv(found_messages, target_date)
+        await send_log_to_channel(guild, log_file_name, CHANNEL_ID)
     else:
         print(f"No messages found for date {target_date}.")
 
