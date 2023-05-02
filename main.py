@@ -15,10 +15,14 @@ def write_log_to_file(found_messages, target_date):
     file_name = f"discord_log_{target_date}.txt"
     with open(file_name, "w", encoding="utf-8") as file:
         for msg in found_messages:
-            attachments = [attachment.url for attachment in msg.attachments]
-            attachment_urls = "\n".join(attachments)
-            file.write(f"{msg.created_at} {msg.author}: {msg.content}\n{attachment_urls}\n")
+            file.write(f"{msg.created_at} {msg.author}: {msg.content}\n")
     return file_name
+
+
+def convert_to_jst(dt):
+    utc = pytz.utc
+    jst = pytz.timezone("Asia/Tokyo")
+    return dt.astimezone(jst)
 
 
 async def fetch_logs(guild, target_date, member=None):
@@ -53,7 +57,6 @@ DATE = get_target_date(pytz.timezone("Asia/Tokyo"))
 
 intents = discord.Intents.default()
 intents.messages = True
-intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
@@ -71,14 +74,13 @@ async def on_ready():
 
     if found_messages:
         for msg in found_messages:
+            jst_created_at = convert_to_jst(msg.created_at)
             attachments = [attachment.url for attachment in msg.attachments]
             attachment_urls = "\n".join(attachments)
-            print(f"Channel: {msg.channel.name} | {msg.author}: {msg.content}\n{attachment_urls}")
-            log_file_name = write_log_to_file(found_messages, target_date)
-        else:
-            print(f"No messages found for date {target_date}.")
-
-
+            print(f"{jst_created_at} {msg.channel} {msg.author}: {msg.content}\n{attachment_urls}")
+        log_file_name = write_log_to_file(found_messages, target_date)
+    else:
+        print(f"No messages found for date {target_date}.")
 
     await bot.close()
 
