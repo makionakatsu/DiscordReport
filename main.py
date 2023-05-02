@@ -15,7 +15,9 @@ def write_log_to_file(found_messages, target_date):
     file_name = f"discord_log_{target_date}.txt"
     with open(file_name, "w", encoding="utf-8") as file:
         for msg in found_messages:
-            file.write(f"{msg.created_at} {msg.author}: {msg.content}\n")
+            attachments = [attachment.url for attachment in msg.attachments]
+            attachment_urls = "\n".join(attachments)
+            file.write(f"{msg.created_at} {msg.author}: {msg.content}\n{attachment_urls}\n")
     return file_name
 
 
@@ -68,7 +70,12 @@ async def on_ready():
 
     if found_messages:
         for msg in found_messages:
-            print(f"{msg.author}: {msg.content}")
+            attachments = [attachment.url for attachment in msg.attachments]
+            attachment_urls = "\n".join(attachments)
+            if attachment_urls:
+                print(f"{msg.author}: {msg.content}\n{attachment_urls}")
+            else:
+                print(f"{msg.author}: {msg.content}")
         log_file_name = write_log_to_file(found_messages, target_date)
     else:
         print(f"No messages found for date {target_date}.")
@@ -76,3 +83,4 @@ async def on_ready():
     await bot.close()
 
 bot.run(TOKEN)
+
