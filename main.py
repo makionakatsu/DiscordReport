@@ -6,10 +6,12 @@ import pytz
 import csv
 
 
-def get_target_date(timezone):
+def get_start_and_end_times(timezone):
     now = datetime.datetime.now(timezone)
-    yesterday = now - datetime.timedelta(days=1)
-    return yesterday.strftime("%Y-%m-%d")
+    start_time = now - datetime.timedelta(days=1)
+    start_time = start_time.replace(hour=20, minute=30, second=0, microsecond=0)
+    end_time = now.replace(hour=20, minute=30, second=0, microsecond=0)
+    return start_time, end_time
 
 
 def write_log_to_csv(found_messages, target_date):
@@ -32,13 +34,13 @@ def convert_to_jst(dt):
     return dt.astimezone(jst)
 
 
-async def fetch_logs(guild, target_date, member=None):
+async def fetch_logs(guild, start_time, end_time, member=None):
     found_messages = []
     for channel in guild.text_channels:
         if not member:
             try:
                 async for msg in channel.history(limit=10000):
-                    if msg.created_at.date() == target_date:
+                    if start_time <= msg.created_at <= end_time:
                         found_messages.append(msg)
             except discord.errors.Forbidden:
                 print(f"Skipping channel {channel.name} due to insufficient permissions.")
@@ -46,14 +48,14 @@ async def fetch_logs(guild, target_date, member=None):
         else:
             try:
                 async for msg in channel.history(limit=10000, user=member):
-                    if msg.created_at.date() == target_date:
+                    if start_time <= msg.created_at <= end_time:
                         found_messages.append(msg)
             except discord.errors.Forbidden:
                 print(f"Skipping channel {channel.name} due to insufficient permissions.")
                 continue
 
     if not found_messages:
-        print(f"No messages found for date {target_date}.")
+        print(f"No messages found for the specified time range.")
 
     return found_messages
 
@@ -69,7 +71,6 @@ async def send_log_to_channel(guild, log_file_name, channel_id):
 
 TOKEN = os.environ["DISCORD_TOKEN"]
 GUILD_ID = int(os.environ["GUILD_ID"])
-DATE = get_target_date(pytz.timezone("Asia/Tokyo"))
 CHANNEL_ID = int(os.environ["CHANNEL_ID"])
 
 intents = discord.Intents.default()
@@ -81,19 +82,21 @@ async def on_ready():
     print(f"We have logged in as {bot.user}")
 
     guild = discord.utils.get(bot.guilds, id=GUILD_ID)
-    target_date = datetime.datetime.strptime(DATE, "%Y-%m-%d").date()
+    timezone = pytz.timezone("Asia/Tokyo")
+    start_time, end_time = get_start_and_end_times(timezone)
 
     if not guild:
         print("Error: Guild not found.")
         return
 
-    found_messages = await fetch_logs(guild, target_date)
+    found_messages = await fetch_logs(guild, start_time, end_time)
 
     if found_messages:
+        target_date = start_time.strftime("%Y-%m-%d")
         log_file_name = write_log_to_csv(found_messages, target_date)
         await send_log_to_channel(guild, log_file_name, CHANNEL_ID)
     else:
-        print(f"No messages found for date {target_date}.")
+        print(f"No messages found for the specified time range.")
 
     await bot.close()
 
