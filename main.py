@@ -4,7 +4,7 @@ from nextcord.ext import commands
 import datetime
 import pytz
 import csv
-
+import re
 
 def get_start_and_end_times(timezone):
     now = datetime.datetime.now(timezone)
@@ -13,20 +13,33 @@ def get_start_and_end_times(timezone):
     end_time = now.replace(hour=20, minute=30, second=0, microsecond=0)
     return start_time, end_time
 
+def count_emojis(text):
+    emoji_pattern = re.compile(
+        "["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                           "]+",
+        flags=re.UNICODE,
+    )
+    emojis = emoji_pattern.findall(text)
+    return sum([len(emoji) for emoji in emojis])
+
 def write_log_to_csv(found_messages, target_date):
     file_name = f"discord_log_{target_date}.csv"
     with open(file_name, "w", encoding="utf-8", newline="") as file:
         csv_writer = csv.writer(file)
-        csv_writer.writerow(["Timestamp", "Channel", "Author", "Content", "Message URL"])
+        csv_writer.writerow(["Timestamp", "Channel", "Author", "Content", "Message URL", "Emoji Count"])
 
         for msg in found_messages:
             jst_created_at = convert_to_jst(msg.created_at)
             formatted_timestamp = jst_created_at.strftime("%Y-%m-%d %H:%M:%S")
             message_url = f"https://discord.com/channels/{msg.guild.id}/{msg.channel.id}/{msg.id}"
-            csv_writer.writerow([formatted_timestamp, msg.channel.name, str(msg.author), msg.content, message_url])
+            emoji_count = count_emojis(msg.content)
+            csv_writer.writerow([formatted_timestamp, msg.channel.name, str(msg.author), msg.content, message_url, emoji_count])
 
     return file_name
-
 
 
 def convert_to_jst(dt):
