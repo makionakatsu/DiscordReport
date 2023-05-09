@@ -13,19 +13,20 @@ def get_start_and_end_times(timezone):
     end_time = now.replace(hour=20, minute=30, second=0, microsecond=0)
     return start_time, end_time
 
-
 def write_log_to_csv(found_messages, target_date):
     file_name = f"discord_log_{target_date}.csv"
     with open(file_name, "w", encoding="utf-8", newline="") as file:
         csv_writer = csv.writer(file)
-        csv_writer.writerow(["Timestamp", "Channel", "Author", "Content"])
+        csv_writer.writerow(["Timestamp", "Channel", "Author", "Content", "Message URL"])
 
         for msg in found_messages:
             jst_created_at = convert_to_jst(msg.created_at)
             formatted_timestamp = jst_created_at.strftime("%Y-%m-%d %H:%M:%S")
-            csv_writer.writerow([formatted_timestamp, msg.channel.name, str(msg.author), msg.content])
+            message_url = f"https://discord.com/channels/{msg.guild.id}/{msg.channel.id}/{msg.id}"
+            csv_writer.writerow([formatted_timestamp, msg.channel.name, str(msg.author), msg.content, message_url])
 
     return file_name
+
 
 
 def convert_to_jst(dt):
